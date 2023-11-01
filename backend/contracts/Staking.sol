@@ -39,14 +39,10 @@ contract Staking {
 
     modifier onlyOwner() {
         require(admin == msg.sender, "Only owner can change it");
-        _;
     }
 
     function stakeMatic(uint256 _numOfDays) external payable {
-        require(
-            levels[_numOfDays] > 0,
-            "You need to stake for a longer period of time"
-        );
+        require(levels[_numOfDays] > 0,"You need to stake for a longer period of time");
 
         stakers[totalStakers] = Stakers(
             totalStakers,
@@ -63,35 +59,20 @@ contract Staking {
         totalStakers++;
     }
 
-    function calculateInterest(
-        uint256 _interest,
-        uint256 _numOfDays,
-        uint256 _amount
-    ) private pure returns (uint256) {
+    function calculateInterest(uint256 _interest, uint256 _numOfDays, uint256 _amount) private pure returns (uint256) {
         return (_interest * _amount) / 10000;
     }
 
-    function getInterestRate(uint256 _numOfDays)
-        external
-        view
-        returns (uint256)
-    {
+    function getInterestRate(uint256 _numOfDays) external view returns (uint256) {
         return levels[_numOfDays];
     }
 
-    function updateLockPeriod(uint256 _numOfDays, uint256 _interest)
-        external
-        onlyOwner
-    {
+    function updateLockPeriod(uint256 _numOfDays, uint256 _interest) external onlyOwner {
         levels[_numOfDays] = _interest;
         lockPeriods.push(_numOfDays);
     }
 
-    function getStakersById(uint256 _stakerId)
-        external
-        view
-        returns (Stakers memory)
-    {
+    function getStakersById(uint256 _stakerId) external view returns (Stakers memory) {
         return stakers[_stakerId];
     }
 
@@ -99,30 +80,18 @@ contract Staking {
         return lockPeriods;
     }
 
-    function getStakerIdsByAddresses(address _address)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getStakerIdsByAddresses(address _address) external view returns (uint256[] memory) {
         return stakerIdsByAddress[_address];
     }
 
-    function changeUnlockPeriod(uint256 _id, uint256 _newUnlockPeriod)
-        external
-        onlyOwner
-    {
+    function changeUnlockPeriod(uint256 _id, uint256 _newUnlockPeriod) external onlyOwner {
         stakers[_id].dateUnlocked = _newUnlockPeriod;
     }
 
     function withdrawMatic(uint256 _id) external {
-        require(
-            stakers[_id].stakerAddress == msg.sender,
-            "You are not the staker"
-        );
+        require(stakers[_id].stakerAddress == msg.sender,"You are not the staker");
         require(stakers[_id].open == true, "Matic already withdrawn");
-
         stakers[_id].open = false;
-
         if (block.timestamp > stakers[_id].dateUnlocked) {
             uint256 amount = stakers[_id].amountStaked + stakers[_id].interest;
             payable(msg.sender).call{value: amount}("");
